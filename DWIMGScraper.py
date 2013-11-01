@@ -11,13 +11,13 @@
 # 1.0 - First acceptable version.
 # 1.01 - Changed some strings to make it work better on nonwindows platforms
 #
-# Usage: 'python DWGIMGScraper.py username password' Run the script from the directory you want to download to. 
+# Usage: 'python DWGIMGScraper.py username password' Run the script from the directory you want to download to.
 #
 # To Do:
 # * Better error handling in function getImageFromPageAndGotoNext
 # * Add option to save to a given directory
 
-
+from __future__ import print_function
 from bs4 import BeautifulSoup
 import requests
 import os
@@ -40,7 +40,7 @@ def DWLogin(user, pw):
                'pass':pw }
 
     post_headers = {'content-type': 'application/x-www-form-urlencoded'}
-    
+
     #Try to login
     s = requests.Session()
     r = s.post('http://dayviews.com/',data=payLoad,headers=post_headers)
@@ -51,9 +51,7 @@ def DWLogin(user, pw):
 
 # Go to user homepage function
 def getDWHomeP(s,user):
-    HomePString = 'http://dayviews.com/'+ user +'/home/'
-    r = s.get(HomePString)
-    return r
+    return s.get('http://dayviews.com/{0}/home'.format(user))
 
 # Check login
 def checkLogin(r):
@@ -82,7 +80,7 @@ def getImageFromPageAndGotoNext(s,link,user):
         saveImageToDisk(s,imgUrl.get('src'),date,user)
     except AttributeError:
         pass
-    
+
     try:
         nextPageLink = soup.find('a', title='Föregående dag').get('href')
     except AttributeError:
@@ -91,57 +89,52 @@ def getImageFromPageAndGotoNext(s,link,user):
         except AttributeError:
             nextPageLink = None
             pass
-        
+
     if (nextPageLink != None):
         getImageFromPageAndGotoNext(s,nextPageLink,user)
 
 #Parses correct name for directory
 def dirNameParse(dirName):
-    strArray = dirName.split(' ')
-    day = strArray[1] #day
+    _, day, month, year = dirName.split(' ')
     if len(day) == 1:
-        day = '0'+day
-    year = strArray[3] #year
+        day = '0{0}'.format(day)
     lookUpMonth = {'januari': '01', 'februari': '02', 'mars': '03', 'april': '04',
                    'maj' : '05', 'juni' : '06', 'juli' : '07', 'augusti': '08',
                    'september' : '09', 'oktober': '10', 'november' : '11', 'december' : '12'}
-    month = lookUpMonth.get(strArray[2],'None')
-    return(year +'-'+ month +'-'+ day)
+    month = lookUpMonth.get(month,'None')
+    return('{0}-{1}-{2}'.format(year, month, day))
 
 #Parses correct filename from url
 def fileNameParse(fileName):
-    strArray = fileName.split('/')
-    lastOfArray = len(strArray)
-    return strArray[lastOfArray-1]
+    _, _, fileName = fileName.rpartition('/')
+    return fileName
 
 #Image saver
 def saveImageToDisk(s,link,date,user):
     r = s.get(link, stream=True)
 
-    dirName = os.getcwd() + '/' + user + '/' + date
-    print 'Downloading file ' + fileNameParse(link) +' to '+ dirName+'..'
-    
+    dirName = '{0}/{1}/{2}'.format(os.getcwd(), user, date)
+    fileName = fileNameParse(link)
+
+    print('Downloading file {0} to {1} ..'.format(fileName, dirName))
+
     try:
         os.makedirs(dirName)
     except:
         if os.path.exists(dirName):
             pass
 
-    fileName = fileNameParse(link)
-
-    fullName = dirName+'/'+fileName
+    fullName = '{0}/{1}'.format(dirName, fileName)
 
     outFile = open(fullName,'wb')
     shutil.copyfileobj(r.raw, outFile)
     del r
 
-    print 'Saved as '+fileName+'!\n'
-        
+    print('Saved as {0}\n'.format(fileName))
+
 #Logout function
 def DWLogOut(s):
-    r = s.get('http://dayviews.com/?action=logout')
-    return r
-    
+    _ = s.get('http://dayviews.com/?action=logout')
 
 #Main - runs at start
 def main():
@@ -151,18 +144,18 @@ def main():
     parser.add_argument('user', action='store', help='Dayviews username')
     parser.add_argument('pw', action='store', help='Dayviews password')
     args = parser.parse_args()
-    
+
     #Login to Daywievs
-    print("\n\nLogging in to Dayviews.com with the supplied username and password...\n\n")
+    print('\n\nLogging in to Dayviews.com with the supplied username and password...\n\n')
     r,s = DWLogin(args.user,args.pw)
 
     #Check that login went well
     if(checkLogin(r)):
         print('Login successful!\n')
     else:
-        print ('Login failed!\nPlease check that the username and password given are correct!\n\n')
-        exit()        
-    
+        print('Login failed!\nPlease check that the username and password given are correct!\n\n')
+        exit(1)
+
     #Go to user homepage
     DWHomeP = getDWHomeP(s,args.user)
 
@@ -174,7 +167,8 @@ def main():
     getImageFromPageAndGotoNext(s,firstLink,args.user)
 
     #Logout in a nice way
-    print("Done!\n Logging out from Dayviews.com..")
-    foo = DWLogOut(s)
+    print('Done!\n Logging out from Dayviews.com..')
+    DWLogOut(s)
 
-if  __name__ =='__main__':main()
+if  __name__ =='__main__':
+    main()
