@@ -8,6 +8,7 @@
  Version history:
  1.0 - First acceptable version.
  1.01 - Changed some strings to make it work better on nonwindows platforms
+ 1.2 - Merged some layout changes submitted by https://github.com/lndbrg
 
  Usage: 'python DWGIMGScraper.py username password' Run the script from the directory you want to download to. 
 
