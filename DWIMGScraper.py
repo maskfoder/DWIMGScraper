@@ -95,7 +95,7 @@ def getImageFromPageAndGotoNext(s,link,user):
 
 #Parses correct name for directory
 def dirNameParse(dirName):
-    _, day, month, year = dirName.split(' ')
+    _, day, month, year, _ = dirName.split(' ', 4)
     if len(day) == 1:
         day = '0{0}'.format(day)
     lookUpMonth = {'januari': '01', 'februari': '02', 'mars': '03', 'april': '04',
