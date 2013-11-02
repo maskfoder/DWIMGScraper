@@ -1,17 +1,17 @@
- DWIMGScraper.py - Downloads all your DayViews.com images to a local directory.
- Version 1.01
- Contact: micke.lind@gmail.com
+DWIMGScraper.py - Downloads all your DayViews.com images to a local directory.
+Version 1.5
+Contact: micke.lind@gmail.com
 
- Required: Python 2.7 with extra libraries BeautifulSoup(http://www.crummy.com/software/BeautifulSoup/)
- and requests (http://www.python-requests.org/en/latest/)installed.
+Required: Python 2.7 with extra libraries BeautifulSoup(http://www.crummy.com/software/BeautifulSoup/)
+and requests (http://www.python-requests.org/en/latest/)installed.
 
- Version history:
- 1.0 - First acceptable version.
- 1.01 - Changed some strings to make it work better on nonwindows platforms
- 1.2 - Merged some layout changes submitted by https://github.com/lndbrg
+Version history:
+1.0 - First acceptable version.
+1.01 - Changed some strings to make it work better on nonwindows platforms
+1.2 - Merged some layout changes submitted by https://github.com/lndbrg
+1.5 - Rewrote Page fetching function to avoid unexpected filename errors. Script should exit in a nice way now.
 
- Usage: 'python DWGIMGScraper.py username password' Run the script from the directory you want to download to. 
+Usage: 'python DWGIMGScraper.py username password' Run the script from the directory you want to download to.
 
- To Do:
- * Better error handling in function getImageFromPageAndGotoNext
- * Add option to save to a given directory
+To Do:
+* Add option to save to a given directory

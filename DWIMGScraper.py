@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 
 # DWIMGScraper.py - Downloads all your DayViews.com images to a local directory.
-# Version 1.01
+# Version 1.5
 # Contact: micke.lind@gmail.com
 #
 # Required: Python 2.7 with extra libraries BeautifulSoup(http://www.crummy.com/software/BeautifulSoup/)
@@ -10,11 +10,12 @@
 # Version history:
 # 1.0 - First acceptable version.
 # 1.01 - Changed some strings to make it work better on nonwindows platforms
+# 1.2 - Merged some layout changes submitted by https://github.com/lndbrg
+# 1.5 - Rewrote Page fetching function to avoid unexpected filename errors. Script should exit in a nice way now.
 #
 # Usage: 'python DWGIMGScraper.py username password' Run the script from the directory you want to download to.
 #
 # To Do:
-# * Better error handling in function getImageFromPageAndGotoNext
 # * Add option to save to a given directory
 
 from __future__ import print_function
@@ -70,11 +71,14 @@ def getImageLinkFromHomeP(r):
     return link.get('href')
 
 #Image find scraper
-def getImageFromPageAndGotoNext(s,link,user):
+def getImageFromPageAndGiveNext(s,link,user):
     r = s.get(link)
     soup = BeautifulSoup(r.text)
     dateAndNr = soup.find('p',id='showContentTitle')
-    date = dirNameParse(dateAndNr.text)
+    try:
+        date = dirNameParse(dateAndNr.text)
+    except AttributeError:
+        date = 'unknown'
     imgUrl = soup.find('img', id='picture')
     try:
         saveImageToDisk(s,imgUrl.get('src'),date,user)
@@ -89,9 +93,7 @@ def getImageFromPageAndGotoNext(s,link,user):
         except AttributeError:
             nextPageLink = None
             pass
-
-    if (nextPageLink != None):
-        getImageFromPageAndGotoNext(s,nextPageLink,user)
+    return nextPageLink
 
 #Parses correct name for directory
 def dirNameParse(dirName):
@@ -160,11 +162,14 @@ def main():
     DWHomeP = getDWHomeP(s,args.user)
 
     #Extract first (latest) image link from user homepage
-    firstLink = getImageLinkFromHomeP(DWHomeP)
+    nextPageLink = getImageLinkFromHomeP(DWHomeP)
 
     print('Starting download...\n\n')
     #Iterate through pages and extract images
-    getImageFromPageAndGotoNext(s,firstLink,args.user)
+    while 1:
+        nextPageLink = getImageFromPageAndGiveNext(s,nextPageLink,args.user)
+        if (nextPageLink == None):
+            break
 
     #Logout in a nice way
     print('Done!\n Logging out from Dayviews.com..')
